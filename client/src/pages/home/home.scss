@@ -5,5 +5,11 @@
         background-color: themed("bgSoft");
         color: themed("textColorSoft");
         padding: 20px 70px;
+        @include moblie {
+            padding: 10px;
+        }
+        @include tablet {
+            padding: 20px;
+        }
     }
 }

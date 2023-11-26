@@ -1,48 +1,16 @@
 import React from "react";
 import "./home.scss";
 
+import Posts from "../../components/posts/Posts";
+import Stories from "../../components/stories/Stories";
+import Share from "../../components/share/Share";
+
 const Home = () => {
   return (
     <div className="home">
-      <h1>HOME</h1>
-      <h1>HOME</h1>
-      <h1>HOME</h1>
-      <h1>HOME</h1>
-      <h1>HOME</h1>
-      <h1>HOME</h1>
-      <h1>HOME</h1>
-      <h1>HOME</h1>
-      <h1>HOME</h1>
-      <h1>HOME</h1>
-      <h1>HOME</h1>
-      <h1>HOME</h1>
-      <h1>HOME</h1>
-      <h1>HOME</h1>
-      <h1>HOME</h1>
-      <h1>HOME</h1>
-      <h1>HOME</h1>
-      <h1>HOME</h1>
-      <h1>HOME</h1>
-      <h1>HOME</h1>
-      <h1>HOME</h1>
-      <h1>HOME</h1>
-      <h1>HOME</h1>
-      <h1>HOME</h1>
-      <h1>HOME</h1>
-      <h1>HOME</h1>
-      <h1>HOME</h1>
-      <h1>HOME</h1>
-      <h1>HOME</h1>
-      <h1>HOME</h1>
-      <h1>HOME</h1>
-      <h1>HOME</h1>
-      <h1>HOME</h1>
-      <h1>HOME</h1>
-      <h1>HOME</h1>
-      <h1>HOME</h1>
-      <h1>HOME</h1>
-      <h1>HOME</h1>
-      <h1>HOME</h1>
+      <Stories />
+      <Share />
+      <Posts />
     </div>
   );
 };

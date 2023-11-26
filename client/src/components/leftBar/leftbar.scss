@@ -12,6 +12,9 @@
         }
         color: themed("textColor");
         background-color: themed("bg");
+        @include moblie {
+            display: none;
+        }
         .container {
             padding: 20px;
             hr {
