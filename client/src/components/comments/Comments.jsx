@@ -1,47 +1,75 @@
-import { useContext } from "react";
+import { useContext, useState } from "react";
 import "./comments.scss";
 import { AuthContext } from "../../context/authContext";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { makeRequest } from "../../axios";
+import moment from "moment";
 
-export const Comments = () => {
+export const Comments = ({ postId }) => {
   const { currentUser } = useContext(AuthContext);
 
-  const comments = [
-    {
-      id: 1,
-      desc:
-        "Lorem ipsum dolor sit amet consectetur adipisicing elit. Autem nequeaspernatur ullam aperiam. Lorem ipsum dolor sit amet consectetur adipisicing elit. Autem nequeaspernatur ullam aperiam",
-      name: "John Doe",
-      userId: 1,
-      profilePicture:
-        "https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
+  const { isPending, error, data } = useQuery({
+    queryKey: ["comments"],
+    queryFn: () =>
+      makeRequest.get("/comments?postId=" + postId).then((res) => {
+        console.log(res.data);
+        return res.data;
+      }),
+  });
+
+  const [desc, setDesc] = useState("");
+
+  const queryClient = useQueryClient();
+
+  const mutation = useMutation({
+    mutationFn: (newComment) => {
+      return makeRequest.post("/comments", newComment);
     },
-    {
-      id: 2,
-      desc:
-        "Lorem ipsum dolor sit amet consectetur adipisicing elit. Autem nequeaspernatur ullam aperiam",
-      name: "Jane Doe",
-      userId: 2,
-      profilePicture:
-        "https://images.pexels.com/photos/1036623/pexels-photo-1036623.jpeg?auto=compress&cs=tinysrgb&w=1600",
+    onError: (error, variables, context) => {
+      // An error happened!
+      console.log(`rolling back optimistic update with id ${context.id}`);
     },
-  ];
+    onSuccess: (data, variables, context) => {
+      // Boom baby!
+      queryClient.invalidateQueries(["comments"]);
+    },
+    onSettled: (data, error, variables, context) => {
+      // Error or success... doesn't matter!
+    },
+  });
+
+  const handleClick = async (e) => {
+    e.preventDefault();
+    mutation.mutate({ desc, postId });
+    setDesc("");
+  };
+
   return (
     <div className="comments">
       <div className="write">
         <img src={currentUser.profilePic} alt="" />
-        <input type="text" placeholder="Write a comment" />
-        <button>Send</button>
+        <input
+          type="text"
+          placeholder="Write a comment"
+          value={desc}
+          onChange={(e) => setDesc(e.target.value)}
+        />
+        <button onClick={handleClick}>Send</button>
       </div>
-      {comments.map((comment) => (
-        <div className="comment" key={comment.id}>
-          <img src={comment.profilePicture} alt="" />
-          <div className="info">
-            <span>{comment.name}</span>
-            <p>{comment.desc}</p>
-          </div>
-          <span className="date">1 hour ago</span>
-        </div>
-      ))}
+      {isPending
+        ? "Loading"
+        : data.map((comment) => (
+            <div className="comment" key={comment.id}>
+              <img src={comment.profilePic} alt="" />
+              <div className="info">
+                <span>{comment.name}</span>
+                <p>{comment.desc}</p>
+              </div>
+              <span className="date">
+                {moment(comment.createdAt).fromNow()}
+              </span>
+            </div>
+          ))}
     </div>
   );
 };

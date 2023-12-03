@@ -6,16 +6,28 @@ import ShareOutlinedIcon from "@mui/icons-material/ShareOutlined";
 import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
 import { Link } from "react-router-dom";
 
-import { useState } from "react";
+import { useState, useContext } from "react";
 import { Comments } from "../comments/Comments";
 import moment from "moment";
+import { useQuery } from "@tanstack/react-query";
+import { makeRequest } from "../../axios";
+import { AuthContext } from "../../context/authContext";
 
 const Post = ({ post }) => {
   const [commentOpen, setCommentOpen] = useState(false);
 
-  //temporary
+  const { currentUser } = useContext(AuthContext);
 
-  const liked = false;
+  const { isPending, error, data } = useQuery({
+    queryKey: ["likes", post.id],
+    queryFn: () =>
+      makeRequest.get("/likes?postId=" + post.id).then((res) => {
+        return res.data;
+      }),
+  });
+
+  console.log(data);
+
   return (
     <div className="post">
       <div className="container">
@@ -24,7 +36,6 @@ const Post = ({ post }) => {
             <Link to={`/profile/${post.userId}`}>
               <img src={post.profilePic} alt="" />
             </Link>
-            {/* <img src={post.profilePic} alt="" /> */}
 
             <div className="details">
               <Link
@@ -44,8 +55,12 @@ const Post = ({ post }) => {
         </div>
         <div className="info">
           <div className="item">
-            {liked ? <FavoriteOutlinedIcon /> : <FavoriteBorderOutlinedIcon />}
-            12 likes
+            {data?.includes(currentUser.id) ? (
+              <FavoriteOutlinedIcon style={{ color: "red" }} />
+            ) : (
+              <FavoriteBorderOutlinedIcon />
+            )}
+            {data?.length} likes
           </div>
           <div className="item" onClick={() => setCommentOpen(!commentOpen)}>
             {<TextsmsOutlinedIcon />}
@@ -56,7 +71,7 @@ const Post = ({ post }) => {
             Share
           </div>
         </div>
-        {commentOpen && <Comments />}
+        {commentOpen && <Comments postId={post.id} />}
       </div>
     </div>
   );
