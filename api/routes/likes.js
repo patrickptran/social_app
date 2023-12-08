@@ -5,6 +5,6 @@ const router = express.Router();
 
 router.get("/", getLikes);
 router.post("/", addLike);
-router.post("/", deleteLike);
+router.delete("/", deleteLike);
 
 export default router;

@@ -9,12 +9,13 @@ import { Link } from "react-router-dom";
 import { useState, useContext } from "react";
 import { Comments } from "../comments/Comments";
 import moment from "moment";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { makeRequest } from "../../axios";
 import { AuthContext } from "../../context/authContext";
 
 const Post = ({ post }) => {
   const [commentOpen, setCommentOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const { currentUser } = useContext(AuthContext);
 
@@ -26,15 +27,50 @@ const Post = ({ post }) => {
       }),
   });
 
-  console.log(data);
+  const queryClient = useQueryClient();
 
+  const mutation = useMutation({
+    mutationFn: (liked) => {
+      console.log(liked);
+      if (liked) return makeRequest.delete("/likes?postId=" + post.id);
+      return makeRequest.post("/likes", { postId: post.id });
+    },
+    onError: (error, variables, context) => {
+      // An error happened!
+      console.log(`rolling back optimistic update with id ${context.id}`);
+    },
+    onSuccess: (data, variables, context) => {
+      // Boom baby!
+      queryClient.invalidateQueries(["likes"]);
+    },
+    onSettled: (data, error, variables, context) => {
+      // Error or success... doesn't matter!
+    },
+  });
+
+  const handleLike = () => {
+    mutation.mutate(data.includes(currentUser.id));
+  };
+
+  const deleteMutation = useMutation({
+    mutationFn: (postId) => {
+      return makeRequest.delete("/posts/" + postId);
+    },
+    onSuccess: (data, variables, context) => {
+      // Boom baby!
+      queryClient.invalidateQueries(["posts"]);
+    },
+  });
+  const handleDelete = () => {
+    deleteMutation.mutate(post.id);
+  };
   return (
     <div className="post">
       <div className="container">
         <div className="user">
           <div className="userInfo">
             <Link to={`/profile/${post.userId}`}>
-              <img src={post.profilePic} alt="" />
+              <img src={"./upload/" + post.profilePic} alt="" />
             </Link>
 
             <div className="details">
@@ -47,7 +83,11 @@ const Post = ({ post }) => {
               <span className="date"> {moment(post.createdAt).fromNow()}</span>
             </div>
           </div>
-          <MoreHorizIcon />
+
+          <MoreHorizIcon onClick={() => setMenuOpen(!menuOpen)} />
+          {menuOpen && post.userId === currentUser.id && (
+            <button onClick={handleDelete}>Delete</button>
+          )}
         </div>
         <div className="content">
           <p>{post.desc}</p>
@@ -55,10 +95,15 @@ const Post = ({ post }) => {
         </div>
         <div className="info">
           <div className="item">
-            {data?.includes(currentUser.id) ? (
-              <FavoriteOutlinedIcon style={{ color: "red" }} />
+            {isPending ? (
+              "Loading"
+            ) : data.includes(currentUser.id) ? (
+              <FavoriteOutlinedIcon
+                style={{ color: "red" }}
+                onClick={handleLike}
+              />
             ) : (
-              <FavoriteBorderOutlinedIcon />
+              <FavoriteBorderOutlinedIcon onClick={handleLike} />
             )}
             {data?.length} likes
           </div>

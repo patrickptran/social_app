@@ -29,16 +29,10 @@ const Share = () => {
     mutationFn: (newPost) => {
       return makeRequest.post("/posts", newPost);
     },
-    onError: (error, variables, context) => {
-      // An error happened!
-      console.log(`rolling back optimistic update with id ${context.id}`);
-    },
+
     onSuccess: (data, variables, context) => {
       // Boom baby!
       queryClient.invalidateQueries(["posts"]);
-    },
-    onSettled: (data, error, variables, context) => {
-      // Error or success... doesn't matter!
     },
   });
 
